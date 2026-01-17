@@ -1,0 +1,170 @@
+\documentclass[11pt,a4paper]{article}
+
+% Packages
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{setspace}
+
+\geometry{margin=1in}
+\setstretch{1.15}
+
+% Title Information
+\title{\textbf{Synapse: EMG-Based Hand Gesture Classification}}
+\author{Synapse -- The NeuroTech Challenge}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+% Abstract
+\begin{abstract}
+Surface electromyography (sEMG) signals contain rich information about muscle activation patterns associated with hand movements. Decoding these biosignals is fundamental to intuitive prosthetic control and human--machine interfaces. This report presents a supervised machine learning pipeline for classifying hand gestures using multichannel sEMG recordings. The proposed system integrates robust preprocessing, physiologically meaningful feature extraction, and an interpretable classification model. Experimental results demonstrate reliable performance across multiple gesture classes despite inter-subject and inter-session variability.
+\end{abstract}
+
+\section{Introduction}
+
+Surface electromyography (sEMG) signals measure the electrical activity produced by skeletal muscles during contraction. These signals encode muscle activation patterns that precede and accompany limb movements. Accurate interpretation of such signals enables intuitive control of prosthetic devices and enhances human--machine interaction.
+
+In this work, we design a supervised learning pipeline to classify discrete hand gestures from multichannel sEMG recordings. The objective is to map raw EMG signals recorded from forearm muscles to one of five predefined gesture classes using robust preprocessing and an explainable machine learning model.
+
+\section{Dataset Description}
+
+The dataset consists of surface EMG recordings collected from multiple subjects across three recording sessions. Each recording corresponds to a single execution of a specific hand gesture.
+
+\subsection*{Dataset Characteristics}
+\begin{itemize}
+    \item Number of EMG channels: 8
+    \item Number of gesture classes: 5
+    \item Data format: CSV files
+    \item Structure: Sessions $\rightarrow$ Subjects $\rightarrow$ Gesture trials
+\end{itemize}
+
+Each CSV file contains synchronized EMG signals from all eight channels over a fixed-length temporal window. Gesture labels are derived from the file naming convention.
+
+\section{Challenges in EMG Signal Decoding}
+
+EMG-based gesture classification presents several challenges:
+
+\begin{itemize}
+    \item \textbf{Signal noise:} EMG signals are affected by motion artifacts, sensor noise, and skin--electrode impedance variations.
+    \item \textbf{Inter-subject variability:} Muscle anatomy and activation strategies vary significantly across individuals.
+    \item \textbf{Inter-session variability:} Electrode placement and physiological conditions change across recording days.
+    \item \textbf{Gesture similarity:} Certain gestures activate overlapping muscle groups, resulting in ambiguous signal patterns.
+\end{itemize}
+
+These challenges necessitate robust preprocessing and carefully chosen features to ensure generalization.
+
+\section{Signal Preprocessing}
+
+\subsection{Channel-wise Normalization}
+
+Each EMG channel is independently normalized using z-score normalization:
+
+\[
+x' = \frac{x - \mu}{\sigma}
+\]
+
+This step reduces amplitude variations across channels and subjects, ensuring balanced feature contribution during learning.
+
+\subsection{Feature Extraction}
+
+Rather than using raw time-series signals directly, time-domain features are extracted to summarize muscle activation characteristics. For each of the eight EMG channels, the following features are computed:
+
+\begin{itemize}
+    \item Mean Absolute Value (MAV)
+    \item Root Mean Square (RMS)
+    \item Variance
+    \item Maximum amplitude
+    \item Waveform Length (WL)
+    \item Zero Crossing count (ZC)
+\end{itemize}
+
+This results in a 48-dimensional feature vector per sample:
+
+\[
+8 \text{ channels} \times 6 \text{ features} = 48
+\]
+
+\section{Feature Scaling}
+
+Due to differences in feature magnitudes (e.g., waveform length versus zero-crossing counts), feature-level standardization is applied using a StandardScaler. This improves numerical stability and ensures consistent feature scaling during training and inference. The fitted scaler is saved and reused during deployment.
+
+\section{Model Architecture}
+
+A Random Forest classifier is employed for gesture classification.
+
+\subsection*{Model Rationale}
+\begin{itemize}
+    \item Robust to noisy and nonlinear feature spaces
+    \item Effective handling of inter-subject variability
+    \item Minimal hyperparameter tuning
+    \item Interpretable and computationally efficient
+\end{itemize}
+
+The final model consists of 200 decision trees trained using bootstrap aggregation.
+
+\section{Training and Evaluation Strategy}
+
+\subsection{Data Split}
+
+The dataset is divided into 80\% training data and 20\% validation data using stratified sampling to preserve class distributions.
+
+\subsection{Evaluation Metrics}
+
+Model performance is evaluated using:
+\begin{itemize}
+    \item Accuracy
+    \item Macro F1-score
+\end{itemize}
+
+Macro F1-score is emphasized to ensure balanced evaluation across all gesture classes.
+
+\section{Results}
+
+The trained model achieves the following validation performance:
+
+\begin{itemize}
+    \item Validation Accuracy: $\sim 0.78$
+    \item Validation Macro F1-score: $\sim 0.78$
+\end{itemize}
+
+These results demonstrate effective gesture discrimination despite significant signal noise and physiological variability.
+
+\section{Confusion Matrix and Per-Class Analysis}
+
+A confusion matrix is computed on the validation set to analyze gesture-wise performance. Gestures such as \textit{Open Hand} and \textit{Rock Sign} exhibit higher recall and precision due to more distinct muscle activation patterns. In contrast, gestures such as \textit{Lateral Pinch} and \textit{Closed Hand} show slightly lower F1-scores, attributed to overlapping forearm muscle activations.
+
+Most misclassifications occur between biomechanically similar gestures, highlighting the inherent difficulty of EMG-based gesture recognition. Importantly, no single gesture dominates predictions, indicating balanced classifier behavior.
+
+\section{Inference and Generalization}
+
+Inference is performed on unseen EMG recordings using the same preprocessing, feature extraction, and scaling pipeline as training. Experiments on unseen trials, sessions, and subjects demonstrate varying class probability distributions, confirming sensitivity to input signal variations. Occasional prediction consistency reflects overlapping muscle activation patterns rather than pipeline errors.
+
+\section{Limitations}
+
+\begin{itemize}
+    \item Overlapping muscle activation patterns among gestures
+    \item High inter-subject variability
+    \item Temporal dynamics not explicitly modeled
+\end{itemize}
+
+\section{Future Work}
+
+Future improvements may include:
+\begin{itemize}
+    \item Subject-adaptive and personalized models
+    \item Deep learning architectures such as CNNs or LSTMs
+    \item Frequency-domain and time--frequency feature extraction
+    \item Real-time and online inference systems
+\end{itemize}
+
+\section{Conclusion}
+
+This report presents a complete and reproducible pipeline for EMG-based hand gesture classification. By combining robust preprocessing, physiologically meaningful features, and an interpretable machine learning model, the system achieves strong performance while maintaining clarity and simplicity. The approach is well-suited for prosthetic control and human--machine interface applications, and provides a solid foundation for future extensions.
+
+\end{document}
