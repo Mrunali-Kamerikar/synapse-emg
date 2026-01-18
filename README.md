@@ -261,5 +261,4 @@ python src/inference.py
 If all steps run successfully, the pipeline is fully functional.
 
 ## 14. Team Members
-Mrunali Kamerikar
-Riddhima Taose
+Mrunali Kamerikar, Riddhima Taose
